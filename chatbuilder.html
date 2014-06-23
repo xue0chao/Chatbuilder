@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>Chatbuilder</title>
+		<script src="http://chatbuilder.hackreactor.com/ChatBuilder.js"></script>
+	</head>
+
+	<body>
+
+		<script>
+			delete Chat.display;
+			delete Chat.fetch;
+			delete Chat.send;
+			
+			$(document).ready(function() {
+
+				window.setInterval(function(){
+			
+					$.ajax({
+				
+						type: 'GET',
+						url: 'https://api.parse.com/1/classes/chats',
+						dataType: 'html',
+						success: function (data) {
+						
+							$('ul').empty();
+						
+							var recentChats = JSON.parse(data);
+							for (i = 0; i < recentChats.results.length; i++) {
+								$('ul').append('<li>' + recentChats.results[i].text + '</li>');
+							}//end for loop
+
+						},//end success function
+						error: function () {
+							alert('Retrieve failed.');
+						}//end error function
+						
+					});//end ajax
+					
+				}, 3000);//end window.setInterval
+			
+				$('.send').click(function(){
+					
+					var address = $(location).attr('href');
+					var username = address.substring(address.indexOf('username') + 9, address.length);
+					var input = $('.draft').val();
+					var message = JSON.stringify({
+						text: username + ': ' + input
+					});
+					
+					$.ajax({
+						type: 'POST',
+						url: 'https://api.parse.com/1/classes/chats',
+						data: message,
+						success: function () {
+							console.log('Message sent.');
+							$('.draft').val('');
+						},//end success function
+						error: function() {
+							alert('Send failed.');
+						}//end error function
+					});//end ajax
+
+				});//end .send.click()
+						
+			});//end document ready
+		</script>
+
+		<h2>Chatbuilder</h2>
+
+		<input class="draft" type="text"/> <button class="send">Send</button>
+
+		<ul class="messages"></ul>
+
+	</body>
+
+</html>
